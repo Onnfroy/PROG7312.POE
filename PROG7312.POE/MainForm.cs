@@ -1,7 +1,7 @@
 ﻿using System;                       // Events, runtime
 using System.Drawing;               // Colors, fonts, drawing
 using System.Windows.Forms;
-using PROG7312.POE.UI;         // WinForms controls
+using PROG7312.POE.UI;              // ReportIssueForm, EventsForm
 
 namespace PROG7312.POE
 {
@@ -27,6 +27,9 @@ namespace PROG7312.POE
         {
             InitializeComponent();
             BuildUi();
+
+            // Part 2: make sure events are seeded once for demo/search/sort.
+            AppState.SeedEventsIfEmpty();
         }
 
         private void BuildUi()
@@ -141,8 +144,8 @@ namespace PROG7312.POE
 
             // Buttons
             btnReportIssues = MakeShadowButton("Report Issues", true, softBeige, hoverBeige);
-            btnEvents = MakeShadowButton("Local Events & Announcements", false, softBeige, hoverBeige);
-            btnStatus = MakeShadowButton("Service Request Status", false, softBeige, hoverBeige);
+            btnEvents = MakeShadowButton("Local Events & Announcements", true, softBeige, hoverBeige);   // ENABLED now
+            btnStatus = MakeShadowButton("Service Request Status", false, softBeige, hoverBeige);        // still coming soon
 
             // LEFT: Report issues
             var leftCol = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1 };
@@ -159,22 +162,22 @@ namespace PROG7312.POE
             leftCol.Controls.Add(btnReportIssues, 0, 0);
             leftCol.Controls.Add(lblReportDesc, 0, 1);
 
-            // MIDDLE: Events
+            // MIDDLE: Events (now active with real description)
             var midCol = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1 };
             midCol.RowStyles.Add(new RowStyle(SizeType.Percent, 75));
             midCol.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
             lblEventsDesc = new Label
             {
-                Text = "Coming soon...",
-                Font = new Font("Segoe UI", 10, FontStyle.Italic),
-                ForeColor = Color.FromArgb(100, Color.Gray),
+                Text = "Browse, search and sort local events and announcements.",
+                Font = new Font("Segoe UI", 10, FontStyle.Regular),
+                ForeColor = Color.FromArgb(90, 50, 50, 50),
                 Dock = DockStyle.Fill,
                 TextAlign = ContentAlignment.MiddleCenter
             };
             midCol.Controls.Add(btnEvents, 0, 0);
             midCol.Controls.Add(lblEventsDesc, 0, 1);
 
-            // RIGHT: Status
+            // RIGHT: Status (still coming soon)
             var rightCol = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1 };
             rightCol.RowStyles.Add(new RowStyle(SizeType.Percent, 75));
             rightCol.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
@@ -197,7 +200,7 @@ namespace PROG7312.POE
             fadeTimer = new Timer { Interval = 50 };
             fadeTimer.Tick += FadeTimer_Tick;
 
-            // Hover events for fade
+            // Hover events for fade (only meaningful for status now)
             btnEvents.MouseEnter += (s, e) => { fadeDirection = 1; fadeTimer.Start(); };
             btnEvents.MouseLeave += (s, e) => { fadeDirection = -1; fadeTimer.Start(); };
 
@@ -213,7 +216,17 @@ namespace PROG7312.POE
                 }
             };
 
-            tips.SetToolTip(btnEvents, "To be implemented later.");
+            // NEW: open Events page
+            btnEvents.Click += delegate
+            {
+                using (var f = new EventsForm())
+                {
+                    f.ShowDialog(this);
+                }
+            };
+
+            // Tooltips
+            tips.SetToolTip(btnEvents, "Open Local Events & Announcements");
             tips.SetToolTip(btnStatus, "To be implemented later.");
         }
 
