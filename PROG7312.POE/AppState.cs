@@ -1,13 +1,13 @@
 ﻿using System;                           // DateTime
 using PROG7312.POE.DataStructures;      // Queue<T> (your custom)
-using PROG7312.POE.Services;            // IssueRepository, EventStore
-using PROG7312.POE.Models;              // EventItem, EventCategory
+using PROG7312.POE.Services;            // IssueRepository, EventStore, RequestStore
+using PROG7312.POE.Models;              // IssueCategory, EventItem, EventCategory, ServiceRequest, RequestPriority, RequestStatus
 
 namespace PROG7312.POE
 {
     /// <summary>
     /// Global, in-memory state for the app (no DB).
-    /// Holds issues (Part 1), engagement messages, and events (Part 2).
+    /// Holds issues (Part 1), engagement messages, events (Part 2), and requests (Part 3).
     /// </summary>
     public static class AppState
     {
@@ -16,7 +16,10 @@ namespace PROG7312.POE
         public static readonly Queue<string> EngagementQueue = new Queue<string>(); // Rotating “thanks” messages.
 
         // ===== Part 2 =====
-        public static readonly EventStore Events = new EventStore();                // All events + DS (SortedDictionary, HashSet, Queue, Stack).
+        public static readonly EventStore Events = new EventStore();                // Events + DS (SortedDictionary, HashSet, Queue, Stack).
+
+        // ===== Part 3 =====
+        public static readonly RequestStore Requests = new RequestStore();          // Requests + DS (BST, MinPriorityQueue, Graph)
 
         // Static ctor runs once when AppState is first referenced.
         static AppState()
@@ -59,6 +62,40 @@ namespace PROG7312.POE
         private static void AddEv(string title, DateTime date, string location, EventCategory category, string description)
         {
             Events.Add(new EventItem(title, date, location, category, description));
+        }
+
+        /// <summary>
+        /// Part 3 seeding: create 15+ service requests with mixed priorities, locations and statuses.
+        /// Call once on startup (e.g., Program.Main or MainForm ctor).
+        /// </summary>
+        public static void SeedRequestsIfEmpty()
+        {
+            // Simple guard: try to peek next; if heap already has items, assume seeded.
+            PROG7312.POE.Models.ServiceRequest tmp;
+            if (Requests.TryPeekNext(out tmp)) return;
+
+            var today = DateTime.Today;
+            void add(string name, IssueCategory cat, RequestPriority pr, string loc, int dueDays, RequestStatus st = RequestStatus.Submitted)
+            {
+                var r = new ServiceRequest(name, cat, pr, loc, today.AddDays(dueDays), st);
+                Requests.Add(r);
+            }
+
+            add("A. Jacobs", IssueCategory.Water, RequestPriority.Critical, "Ward 1", 1);
+            add("B. Dlamini", IssueCategory.Roads, RequestPriority.High, "Ward 2", 2);
+            add("C. Naidoo", IssueCategory.Sanitation, RequestPriority.Normal, "Ward 3", 3);
+            add("D. Smith", IssueCategory.Electricity, RequestPriority.Critical, "Ward 4", 1);
+            add("E. Adams", IssueCategory.PublicSafety, RequestPriority.High, "Ward 5", 2);
+            add("F. Khan", IssueCategory.Water, RequestPriority.Low, "Ward 2", 5);
+            add("G. Botha", IssueCategory.Roads, RequestPriority.Normal, "Ward 3", 4);
+            add("H. Williams", IssueCategory.Sanitation, RequestPriority.Critical, "Ward 1", 1);
+            add("I. Zulu", IssueCategory.Electricity, RequestPriority.High, "Ward 5", 2);
+            add("J. Mbeki", IssueCategory.PublicSafety, RequestPriority.Normal, "Ward 4", 3);
+            add("K. Lee", IssueCategory.Water, RequestPriority.Low, "Ward 3", 7);
+            add("L. Patel", IssueCategory.Roads, RequestPriority.High, "Ward 2", 2);
+            add("M. Brown", IssueCategory.Sanitation, RequestPriority.Normal, "Ward 4", 3);
+            add("N. Van Wyk", IssueCategory.Electricity, RequestPriority.Critical, "Ward 5", 1);
+            add("O. Pretorius", IssueCategory.PublicSafety, RequestPriority.Low, "Ward 1", 6);
         }
     }
 }

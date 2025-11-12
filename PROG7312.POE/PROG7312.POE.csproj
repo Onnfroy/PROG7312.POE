@@ -47,7 +47,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppState.cs" />
+    <Compile Include="DataStructures\BST.cs" />
+    <Compile Include="DataStructures\Graph.cs" />
     <Compile Include="DataStructures\LinkedList.cs" />
+    <Compile Include="DataStructures\MinPriorityQueue.cs" />
     <Compile Include="DataStructures\Queue.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
@@ -59,10 +62,12 @@
     <Compile Include="Models\EventItem.cs" />
     <Compile Include="Models\Issue.cs" />
     <Compile Include="Models\IssueCategory.cs" />
+    <Compile Include="Models\ServiceRequest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\EventStore.cs" />
     <Compile Include="Services\IssueRepository.cs" />
+    <Compile Include="Services\RequestStore.cs" />
     <Compile Include="UI\EventsForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -71,6 +76,12 @@
     </Compile>
     <Compile Include="UI\ReportIssueForm.cs">
       <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\RequestStatusForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\RequestStatusForm.Designer.cs">
+      <DependentUpon>RequestStatusForm.cs</DependentUpon>
     </Compile>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

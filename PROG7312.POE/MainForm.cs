@@ -1,7 +1,7 @@
-﻿using System;                       // Events, runtime
-using System.Drawing;               // Colors, fonts, drawing
+﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
-using PROG7312.POE.UI;              // ReportIssueForm, EventsForm
+using PROG7312.POE.UI; // ReportIssueForm, EventsForm, RequestStatusForm
 
 namespace PROG7312.POE
 {
@@ -26,10 +26,12 @@ namespace PROG7312.POE
         public MainForm()
         {
             InitializeComponent();
-            BuildUi();
 
-            // Part 2: make sure events are seeded once for demo/search/sort.
-            AppState.SeedEventsIfEmpty();
+            // Seed data for all parts
+            AppState.SeedEventsIfEmpty();    // Part 2
+            AppState.SeedRequestsIfEmpty();  // Part 3
+
+            BuildUi();
         }
 
         private void BuildUi()
@@ -144,8 +146,8 @@ namespace PROG7312.POE
 
             // Buttons
             btnReportIssues = MakeShadowButton("Report Issues", true, softBeige, hoverBeige);
-            btnEvents = MakeShadowButton("Local Events & Announcements", true, softBeige, hoverBeige);   // ENABLED now
-            btnStatus = MakeShadowButton("Service Request Status", false, softBeige, hoverBeige);        // still coming soon
+            btnEvents = MakeShadowButton("Local Events & Announcements", true, softBeige, hoverBeige);
+            btnStatus = MakeShadowButton("Service Request Status", true, softBeige, hoverBeige); // now enabled for Part 3
 
             // LEFT: Report issues
             var leftCol = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1 };
@@ -162,7 +164,7 @@ namespace PROG7312.POE
             leftCol.Controls.Add(btnReportIssues, 0, 0);
             leftCol.Controls.Add(lblReportDesc, 0, 1);
 
-            // MIDDLE: Events (now active with real description)
+            // MIDDLE: Events
             var midCol = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1 };
             midCol.RowStyles.Add(new RowStyle(SizeType.Percent, 75));
             midCol.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
@@ -177,15 +179,15 @@ namespace PROG7312.POE
             midCol.Controls.Add(btnEvents, 0, 0);
             midCol.Controls.Add(lblEventsDesc, 0, 1);
 
-            // RIGHT: Status (still coming soon)
+            // RIGHT: Status
             var rightCol = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1 };
             rightCol.RowStyles.Add(new RowStyle(SizeType.Percent, 75));
             rightCol.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
             lblStatusDesc = new Label
             {
-                Text = "Coming soon...",
-                Font = new Font("Segoe UI", 10, FontStyle.Italic),
-                ForeColor = Color.FromArgb(100, Color.Gray),
+                Text = "Manage and track service requests in real-time.",
+                Font = new Font("Segoe UI", 10, FontStyle.Regular),
+                ForeColor = Color.FromArgb(90, 50, 50, 50),
                 Dock = DockStyle.Fill,
                 TextAlign = ContentAlignment.MiddleCenter
             };
@@ -196,18 +198,19 @@ namespace PROG7312.POE
             cards.Controls.Add(midCol, 1, 0);
             cards.Controls.Add(rightCol, 2, 0);
 
-            // Fade timer
+            // Fade timer (still used for subtle text fade if you like)
             fadeTimer = new Timer { Interval = 50 };
             fadeTimer.Tick += FadeTimer_Tick;
 
-            // Hover events for fade (only meaningful for status now)
             btnEvents.MouseEnter += (s, e) => { fadeDirection = 1; fadeTimer.Start(); };
             btnEvents.MouseLeave += (s, e) => { fadeDirection = -1; fadeTimer.Start(); };
 
             btnStatus.MouseEnter += (s, e) => { fadeDirection = 1; fadeTimer.Start(); };
             btnStatus.MouseLeave += (s, e) => { fadeDirection = -1; fadeTimer.Start(); };
 
-            // Active button wiring
+            // === BUTTON CLICK ACTIONS ===
+
+            // Part 1: Report issues
             btnReportIssues.Click += delegate
             {
                 using (var f = new ReportIssueForm())
@@ -216,7 +219,7 @@ namespace PROG7312.POE
                 }
             };
 
-            // NEW: open Events page
+            // Part 2: Events
             btnEvents.Click += delegate
             {
                 using (var f = new EventsForm())
@@ -225,12 +228,22 @@ namespace PROG7312.POE
                 }
             };
 
+            // Part 3: Requests
+            btnStatus.Click += delegate
+            {
+                using (var f = new RequestStatusForm())
+                {
+                    f.ShowDialog(this);
+                }
+            };
+
             // Tooltips
+            tips.SetToolTip(btnReportIssues, "Report municipal issues");
             tips.SetToolTip(btnEvents, "Open Local Events & Announcements");
-            tips.SetToolTip(btnStatus, "To be implemented later.");
+            tips.SetToolTip(btnStatus, "Open Service Request Status");
         }
 
-        // Shadow button factory
+        // Shadow button factory (unchanged)
         private Button MakeShadowButton(string text, bool enabled, Color baseColor, Color hoverColor)
         {
             var btn = new Button
@@ -279,7 +292,7 @@ namespace PROG7312.POE
             return btn;
         }
 
-        // Fade effect
+        // Fade effect (subtle text fade on hover)
         private void FadeTimer_Tick(object sender, EventArgs e)
         {
             float step = 0.1f * fadeDirection;
@@ -287,8 +300,10 @@ namespace PROG7312.POE
             fadeAlphaEvents = Math.Max(0.4f, Math.Min(1f, fadeAlphaEvents + step));
             fadeAlphaStatus = Math.Max(0.4f, Math.Min(1f, fadeAlphaStatus + step));
 
-            lblEventsDesc.ForeColor = Color.FromArgb((int)(fadeAlphaEvents * 255), Color.Gray);
-            lblStatusDesc.ForeColor = Color.FromArgb((int)(fadeAlphaStatus * 255), Color.Gray);
+            if (lblEventsDesc != null)
+                lblEventsDesc.ForeColor = Color.FromArgb((int)(fadeAlphaEvents * 255), Color.Gray);
+            if (lblStatusDesc != null)
+                lblStatusDesc.ForeColor = Color.FromArgb((int)(fadeAlphaStatus * 255), Color.Gray);
 
             if ((fadeDirection == 1 && fadeAlphaEvents >= 1f && fadeAlphaStatus >= 1f) ||
                 (fadeDirection == -1 && fadeAlphaEvents <= 0.4f && fadeAlphaStatus <= 0.4f))
