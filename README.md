@@ -1,8 +1,6 @@
 PROG7312 Municipal Services Application
 
-Developed by: Your Name (Student Number)
-
-(Replace this with your actual name if required in the rubric)
+Developed by: Ethan Jason Smith (ST10263534)
 
 ⸻
 
